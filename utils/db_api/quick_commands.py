@@ -71,6 +71,16 @@ async def delete_product(count: int):
     # print(await Product.delete.limit(count).gino.status())
 
 
+async def create_price():
+    try:
+        price = Prices(name_product='string', price=20)
+
+        await price.create()
+
+    except UniqueViolationError:
+        pass
+
+
 async def get_string_price():
     string = await Prices.query.where(Prices.name_product == 'string').gino.first()
     return string.price

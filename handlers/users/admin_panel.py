@@ -9,6 +9,11 @@ from loader import dp
 from utils.db_api import quick_commands as commands
 
 
+@dp.message_handler(chat_id=417804053, commands=["create_product"])
+async def add_item(message: types.Message):
+    await commands.create_price()
+
+
 @dp.message_handler(CommandHelp(), chat_id=-1001657326519)
 async def bot_help(message: types.Message):
     text = [
