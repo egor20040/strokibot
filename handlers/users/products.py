@@ -2,59 +2,99 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from documents.locate import DOC_DIR
-from keyboards.inline.products import keybord_products
+from keyboards.inline.products import keybord_products, keybord_products_buy, keybord_products_cancel
+from keyboards.default.main_menu import cancel
 from loader import dp
 from utils.db_api import quick_commands as commands
-from utils.db_api.quick_commands import get_product
 
 
-@dp.message_handler(text="Товары")
+@dp.message_handler(text="Наличие товаров")
 async def show_menu(message: types.Message):
     await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
 
 
+@dp.message_handler(text="Наличие товаров", state="buy_string")
+async def show_menu(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
+@dp.callback_query_handler(text="back_menu_product", state="buy")
+async def show_menu_a(call: types.CallbackQuery, state: FSMContext):
+    print("OK")
+    await call.answer(cache_time=60)
+    await state.finish()
+    await call.message.delete()
+    await call.message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
+@dp.callback_query_handler(text="cancel", state="buy_string")
+async def cancel(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await state.finish()
+    await call.message.delete()
+    await call.message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
 @dp.callback_query_handler(text="string")
 async def back_profile(call: types.CallbackQuery, state: FSMContext):
-    count = await get_product()
-    await call.message.answer(f"Можно купить: {len(count)}\n\n"
-                              "Введите количество для покупки, стоимость 20 руб штука")
+    await call.answer(cache_time=60)
+    await call.message.delete()
+    count = await commands.get_count_product()
+    price = await commands.get_string_price()
+    if count == '':
+        count = 0
+    await call.message.answer(f"Можно купить: {count}\n\n"
+                              f"Введите количество для покупки, стоимость {price} руб штука",
+                              reply_markup=keybord_products_cancel)
     await state.set_state("buy_string")
+    await state.update_data(count=count)
+    await state.update_data(price=price)
 
 
 @dp.message_handler(state="buy_string")
 async def update_currency(message: types.Message, state: FSMContext):
     number = message.text
+    data = await state.get_data()
+    count = data.get("count")
+    price = data.get("price")
     if number.isdigit():
-        summ = int(number) * 20
-        user = await commands.select_user(message.chat.id)
-        balance = user.balance - summ
-        stroki = await get_product()
-        i = 0
-        if balance >= 0:
-            await commands.update_balance_buy(id=message.chat.id, summ=balance)
-            for u in stroki:
-                i += 1
-                if i <= int(number):
-                    await message.answer(u.string)
-                else:
-                    break
-
-            await state.finish()
+        summ = price * int(number)
+        if int(number) > count:
+            await message.answer(f"Маскимальная  сумма для покупки {count}\n\n"
+                                 f"Введите корректное количество.", reply_markup=keybord_products_cancel)
+            await state.set_state("buy_string")
+        elif int(number) < 2:
+            await message.answer(f"Минималбная  сумма для покупки 2\n\n"
+                                 f"Введите корректное количество.", reply_markup=keybord_products_cancel)
+            await state.set_state("buy_string")
         else:
-            await message.answer(f"Вам не хватает денег, пополните ваш баланс")
+            await message.answer(f"Вы хотите приобрести {number} строк.\n\n"
+                                 f"Итоговая сумма: {summ} р.\n\n"
+                                 f"Хотите продолжить?", reply_markup=keybord_products_buy)
+            await state.set_state("buy")
+            await state.update_data(number=int(number))
+            await state.update_data(summ=int(summ))
     else:
-        await message.answer(f"Введите корректное количество.")
+        await message.answer(f"Введите корректное количество.", reply_markup=keybord_products_cancel)
         await state.set_state("buy_string")
 
 
-@dp.message_handler(chat_id=-1001657326519, content_types=['document'])
-async def scan_message(msg: types.Message):
-    document_id = msg.document.file_id
-    file_info = await dp.bot.get_file(document_id)
-    fi = file_info.file_path
-    name = msg.document.file_name
-    await dp.bot.download_file(file_path=fi, destination=f"documents/{name}")
-    with open(DOC_DIR / name, "r", encoding="UTF8") as file:
-        for line in file:
-            if len(line) > 10:
-                await commands.add_string(line)
+@dp.callback_query_handler(text="buy", state="buy")
+async def buy(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    data = await state.get_data()
+    number = data.get("number")
+    summ = data.get("summ")
+    user = await commands.select_user(call.message.chat.id)
+    balance = user.balance - summ
+    stroki = await commands.get_product(count=int(number), user_id=call.message.chat.id)
+    if balance >= 0:
+        await commands.update_balance_buy(id=call.message.chat.id, summ=balance)
+        for u in stroki:
+            await call.message.answer(u.string)
+
+        await dp.bot.send_message(-1001657326519, f"Пользователь {user.name}, купил {number} строк")
+        await state.finish()
+    else:
+        await call.message.answer(f"Вам не хватает денег, пополните ваш баланс")

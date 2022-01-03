@@ -3,7 +3,8 @@ from typing import List
 from aiogram import Dispatcher
 from gino import Gino
 import sqlalchemy as sa
-from sqlalchemy import Integer, Column, String, DateTime, BigInteger, sql
+from sqlalchemy import Integer, Column, String, DateTime, BigInteger, sql, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 
 from data import config
 
@@ -47,7 +48,18 @@ class User(TimeBaseModel):
 class Product(TimeBaseModel):
     __tablename__ = 'product'
     query: sql.Select
+    id = Column(Integer, primary_key=True)
     string = Column(String(100))
+    sell = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+
+class Prices(TimeBaseModel):
+    __tablename__ = 'price'
+    query: sql.Select
+    id = Column(Integer, primary_key=True)
+    name_product = Column(String(100))
+    price = Column(Integer)
 
 
 async def on_startup(dispatcher: Dispatcher):
