@@ -29,6 +29,12 @@ async def update_balance_buy(id: int, summ):
     await user.update(balance=summ).apply()
 
 
+async def get_product():
+    user = await Product.query.gino.all()
+
+    return user
+
+
 async def add_string(string: str):
     try:
         product = Product(string=string)
