@@ -20,40 +20,58 @@ from loader import dp
 from utils.misc.qiwi import Payment, NoPaymentFound, NotEnoughMoney
 
 
-@dp.message_handler(text="Профиль")
+@dp.message_handler(text="👤 Профиль")
 async def show_menu(message: types.Message):
     user = await commands.select_user(message.from_user.id)
     buy_string = await commands.get_purchases_count(message.chat.id)
-    await message.answer(f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
+    await message.answer(f"Ваш id: {message.from_user.id}\n"
+                         f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
                          f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
 
 
-@dp.message_handler(text="Профиль", state="buy_string")
+@dp.message_handler(text="👤 Профиль", state="buy_string")
 async def show_menu(message: types.Message, state: FSMContext):
     await state.finish()
     user = await commands.select_user(message.from_user.id)
     buy_string = await commands.get_purchases_count(message.chat.id)
-    await message.answer(f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
-                         f"Вы купили строк {buy_string}", reply_markup=keybord_add_money)
+    await message.answer(f"Ваш id: {message.from_user.id}\n"
+                         f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
+                         f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
+
+
+@dp.message_handler(text="👤 Профиль", state="add_money")
+async def show_menu(message: types.Message, state: FSMContext):
+    await state.finish()
+    user = await commands.select_user(message.from_user.id)
+    buy_string = await commands.get_purchases_count(message.chat.id)
+    await message.answer(f"Ваш id: {message.from_user.id}\n"
+                         f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
+                         f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
 
 
 @dp.callback_query_handler(text="get_lines")
 async def back_profile(call: types.CallbackQuery):
     buy_string = await commands.get_purchases(call.message.chat.id)
+    buy_count = await commands.get_purchases_count(call.message.chat.id)
     await call.answer(cache_time=60)
-    with open(f"documents/{call.message.chat.id}.txt", "w", encoding="UTF8") as file:
-        for string in buy_string:
-            updated_at = string.updated_at + dt.timedelta(hours=3)
-            date = updated_at.strftime('%H:%M %d.%m.%y')
-            file.write(f"{string.string} , куплен - {date}\n")
+    if buy_count == 0:
+        await call.message.answer("Вы пока ничего не купили")
+    else:
+        with open(f"documents/{call.message.chat.id}.txt", "w", encoding="UTF8") as file:
+            for string in buy_string:
+                updated_at = string.updated_at + dt.timedelta(hours=3)
+                date = updated_at.strftime('%H:%M %d.%m.%y')
+                file.write(f"{string.string} , куплен - {date}\n")
 
-    f = open(DOC_DIR / f"{call.message.chat.id}.txt", "rb")
-    await dp.bot.send_document(chat_id=call.message.chat.id, document=f)
-    os.remove(f"documents/{call.message.chat.id}.txt")
+        f = open(DOC_DIR / f"{call.message.chat.id}.txt", "rb")
+        await dp.bot.send_document(chat_id=call.message.chat.id, document=f)
+        os.remove(f"documents/{call.message.chat.id}.txt")
 
 
 @dp.callback_query_handler(text="add_money")
 async def back_profile(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await call.message.delete()
     await call.message.answer("Введите сумму на которую хотите пополнить кошелк")
     await state.set_state("add_money")
 

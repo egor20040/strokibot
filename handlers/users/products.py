@@ -2,18 +2,25 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from documents.locate import DOC_DIR
-from keyboards.inline.products import keybord_products, keybord_products_buy, keybord_products_cancel
+from keyboards.inline.products import keybord_products, keybord_products_buy, keybord_products_cancel, \
+    keybord_products_balance
 from keyboards.default.main_menu import cancel
 from loader import dp
 from utils.db_api import quick_commands as commands
 
 
-@dp.message_handler(text="Наличие товаров")
+@dp.message_handler(text="📖 Наличие товаров")
 async def show_menu(message: types.Message):
     await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
 
 
-@dp.message_handler(text="Наличие товаров", state="buy_string")
+@dp.message_handler(text="📖 Наличие товаров", state="buy_string")
+async def show_menu(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
+@dp.message_handler(text="📖 Наличие товаров", state="add_money")
 async def show_menu(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
@@ -88,8 +95,8 @@ async def buy(call: types.CallbackQuery, state: FSMContext):
     summ = data.get("summ")
     user = await commands.select_user(call.message.chat.id)
     balance = user.balance - summ
-    stroki = await commands.get_product(count=int(number), user_id=call.message.chat.id)
     if balance >= 0:
+        stroki = await commands.get_product(count=int(number), user_id=call.message.chat.id)
         await commands.update_balance_buy(id=call.message.chat.id, summ=balance)
         for u in stroki:
             await call.message.answer(u.string)
@@ -97,4 +104,7 @@ async def buy(call: types.CallbackQuery, state: FSMContext):
         await dp.bot.send_message(-1001657326519, f"Пользователь {user.name}, купил {number} строк")
         await state.finish()
     else:
-        await call.message.answer(f"Вам не хватает денег, пополните ваш баланс")
+        await state.finish()
+        balance *= -1
+        await call.message.answer(f"Вам не хватает {balance}, пополните ваш баланс",
+                                  reply_markup=keybord_products_balance)

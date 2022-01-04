@@ -1,10 +1,11 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandHelp
+from aiogram.types import CallbackQuery
 
 from documents.locate import DOC_DIR
-from keyboards.inline.admin_keyboard import keyboard_a, keybord_admin
-from keyboards.inline.callback_datas import set_string_price, set_mailing
+from keyboards.inline.admin_keyboard import keyboard_a, keybord_admin, keyboard_add_balance
+from keyboards.inline.callback_datas import set_string_price, set_mailing, set_add_balance
 from loader import dp
 from utils.db_api import quick_commands as commands
 
@@ -14,13 +15,66 @@ async def add_item(message: types.Message):
     await commands.create_price()
 
 
+@dp.message_handler(chat_id=417804053, commands=["add_users_balance"])
+async def add_users_balance(message: types.Message, state: FSMContext):
+    await message.answer(f"Введите id пользователя которому хотите пополнить баланс")
+    await state.set_state("add_users_balance")
+
+
+@dp.message_handler(chat_id=417804053, state='add_users_balance')
+async def add_users_balance_1(message: types.Message, state: FSMContext):
+    user = await commands.select_user(int(message.text))
+    if user:
+        await message.answer("Введите сумму на которую хотите пополнить баланс")
+        await state.set_state("add_users_balance_sum")
+        await state.update_data(user_id=message.text)
+    else:
+        await message.answer("Такого пользоватлея не существует")
+        await state.finish()
+
+
+@dp.message_handler(chat_id=417804053, state='add_users_balance_sum')
+async def add_users_balance_1(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    user_id = data.get("user_id")
+    user = await commands.select_user(int(user_id))
+    await message.answer(f"Вы хотите добавить пользователю: {user.name} {message.text}.0 RUB\n"
+                         f"Текущий баланс пользователя: {user.balance}.0 RUB",
+                         reply_markup=keyboard_add_balance())
+    await state.set_state("add_users_balance_finish")
+    await state.update_data(user_id=user_id)
+    await state.update_data(balance=message.text)
+
+
+@dp.callback_query_handler(text='cancel_add_balance', chat_id=417804053, state="add_users_balance_finish")
+async def add_users_balance_3(call: CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await call.message.delete()
+    await call.message.answer("Вы отменили операцию")
+    await state.finish()
+
+
+@dp.callback_query_handler(text='add_balance_user', chat_id=417804053, state="add_users_balance_finish")
+async def add_users_balance_2(call: CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await call.message.delete()
+    data = await state.get_data()
+    user_id = data.get("user_id")
+    balance = data.get("balance")
+    await commands.update_balance(int(user_id), int(balance))
+    user = await commands.select_user(int(user_id))
+    await call.message.answer(f"Баланс успешно пополнен, баланс пользователя {user.name} {user.balance}.0 RUB")
+    await state.finish()
+
+
 @dp.message_handler(CommandHelp(), chat_id=-1001657326519)
 async def bot_help(message: types.Message):
     text = [
         'Список команд: ',
         '/set_price_string - Установвить цену строки',
         '/mailing - Сделайть рассылку',
-        '/total_users - количество пользоватлей бота'
+        '/total_users - количество пользоватлей бота',
+        '/add_users_balance - добавить баланс пользователю'
     ]
     await message.answer('\n'.join(text))
 

@@ -49,7 +49,7 @@ class Product(TimeBaseModel):
     __tablename__ = 'product'
     query: sql.Select
     id = Column(Integer, primary_key=True)
-    string = Column(String(100))
+    string = Column(String)
     sell = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('users.id'))
 

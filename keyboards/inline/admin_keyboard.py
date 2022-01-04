@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from keyboards.inline.callback_datas import set_string_price, set_mailing
+from keyboards.inline.callback_datas import set_string_price, set_mailing, set_add_balance
 
 
 def keyboard_a(price):
@@ -44,3 +44,25 @@ keybord_admin = InlineKeyboardMarkup(row_width=1,
                                          ]
                                      ]
                                      )
+
+
+def keyboard_add_balance():
+    keybord_admin = InlineKeyboardMarkup(row_width=1,
+                                         inline_keyboard=[
+                                             [
+                                                 InlineKeyboardButton(
+                                                     text="Подтвердить",
+                                                     callback_data="add_balance_user"
+
+                                                 ),
+                                             ],
+                                             [
+                                                 InlineKeyboardButton(
+                                                     text="Отмена",
+                                                     callback_data="cancel_add_balance"
+
+                                                 ),
+                                             ]
+                                         ]
+                                         )
+    return keybord_admin
