@@ -14,7 +14,8 @@ QIWI_TOKEN = str(os.getenv("qiwi"))
 WALLET_QIWI = str(os.getenv("wallet"))
 QIWI_PUBKEY = str(os.getenv("qiwi_p_pub"))
 admins = [
-    417804053
+    417804053,
+    406435291
 ]
 
 ip = os.getenv("ip")
