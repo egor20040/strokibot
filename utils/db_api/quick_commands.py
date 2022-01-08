@@ -3,9 +3,12 @@ from asyncpg import UniqueViolationError
 from utils.db_api.db_gino import User, Product, db, Prices
 
 
-async def add_user(id: int, name: str, chat_id: int, balance: int = None, purchases: str = None, ):
+async def add_user(id: int, name: str, chat_id: int, invited: int, bonus_string: int, balance: int = None,
+                   purchases: str = None,
+                   called: int = None):
     try:
-        user = User(id=id, name=name, chat_id=chat_id, balance=balance, purchases=purchases)
+        user = User(id=id, name=name, chat_id=chat_id, balance=balance, purchases=purchases, called=called,
+                    invited=invited, bonus_string=bonus_string)
 
         await user.create()
 
@@ -89,3 +92,13 @@ async def get_string_price():
 async def update_price_string(price):
     string = await Prices.query.where(Prices.name_product == 'string').gino.first()
     await string.update(price=price).apply()
+
+
+async def update_invited(id, invited):
+    user = await User.get(id)
+    await user.update(invited=invited, bonus_string=user.bonus_string + 2).apply()
+
+
+async def update_bonus_string(id):
+    user = await User.get(id)
+    await user.update(bonus_string=0).apply()

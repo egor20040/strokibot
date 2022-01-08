@@ -43,6 +43,9 @@ class User(TimeBaseModel):
     chat_id = Column(BigInteger)
     balance = Column(Integer)
     purchases = Column(String(100))
+    invited = Column(Integer)
+    called = Column(Integer)
+    bonus_string = Column(Integer)
 
 
 class Product(TimeBaseModel):

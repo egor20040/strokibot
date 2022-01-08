@@ -15,6 +15,13 @@ keybord_add_money = InlineKeyboardMarkup(row_width=1,
                                                  ),
 
                                              ],
+                                             [
+                                                 InlineKeyboardButton(
+                                                     text="Получить бонусные строки",
+                                                     callback_data="get_bonus_lines"
+
+                                                 ),
+                                             ]
 
                                          ]
                                          )

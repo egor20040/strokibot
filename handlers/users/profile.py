@@ -24,29 +24,60 @@ from utils.misc.qiwi import Payment, NoPaymentFound, NotEnoughMoney
 async def show_menu(message: types.Message):
     user = await commands.select_user(message.from_user.id)
     buy_string = await commands.get_purchases_count(message.chat.id)
+    bot_user = await dp.bot.get_me()
     await message.answer(f"Ваш id: {message.from_user.id}\n"
                          f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
-                         f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
+                         f"Вы купили строк: {buy_string}\n"
+                         f"Бонусные строки: {user.bonus_string}\n"
+                         f"Пригласили пользователей: {user.invited}\n\n"
+                         f"Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
+                         reply_markup=keybord_add_money, disable_web_page_preview=True)
 
 
 @dp.message_handler(text="👤 Профиль", state="buy_string")
 async def show_menu(message: types.Message, state: FSMContext):
     await state.finish()
     user = await commands.select_user(message.from_user.id)
+    bot_user = await dp.bot.get_me()
     buy_string = await commands.get_purchases_count(message.chat.id)
     await message.answer(f"Ваш id: {message.from_user.id}\n"
                          f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
-                         f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
+                         f"Вы купили строк: {buy_string}\n"
+                         f"Бонусные строки: {user.bonus_string}\n"
+                         f"Пригласили пользователей: {user.invited}\n\n"
+                         f"Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
+                         reply_markup=keybord_add_money, disable_web_page_preview=True)
 
 
 @dp.message_handler(text="👤 Профиль", state="add_money")
 async def show_menu(message: types.Message, state: FSMContext):
     await state.finish()
+    bot_user = await dp.bot.get_me()
     user = await commands.select_user(message.from_user.id)
     buy_string = await commands.get_purchases_count(message.chat.id)
     await message.answer(f"Ваш id: {message.from_user.id}\n"
                          f"Ваш текущий баланс: {user.balance}.0 RUB\n\n"
-                         f"Вы купили строк: {buy_string}", reply_markup=keybord_add_money)
+                         f"Вы купили строк: {buy_string}\n"
+                         f"Бонусные строки: {user.bonus_string}\n"
+                         f"Пригласили пользователей: {user.invited}\n\n"
+                         f"Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
+                         reply_markup=keybord_add_money, disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text="get_bonus_lines")
+async def back_profile(call: types.CallbackQuery):
+    user = await commands.select_user(call.message.chat.id)
+    if user.bonus_string > 0:
+        stroki = await commands.get_product(count=user.bonus_string, user_id=call.message.chat.id)
+        await commands.update_bonus_string(id=call.message.chat.id)
+        for u in stroki:
+            await call.message.answer(u.string)
+        await dp.bot.send_message(-1001657326519,
+                                  f"Пользователь {user.name}, получил {user.bonus_string}  бонусных строк")
+    else:
+        await call.message.answer(
+            "У вас пока нет бонусных строк, для получения пригласите новых пользователй по вашей реферальной ссылке.\n\n"
+            "За каждого приглашенного пользователя вы получите 2 строки")
 
 
 @dp.callback_query_handler(text="get_lines")
@@ -77,7 +108,8 @@ async def back_profile(call: types.CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query_handler(text="back_profile", state="paid")
-async def back_profile(call: types.CallbackQuery):
+async def back_profile(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()
     await call.answer(cache_time=60)
     await call.message.delete()
     user = await commands.select_user(call.message.chat.id)
