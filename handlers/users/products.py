@@ -28,7 +28,6 @@ async def show_menu(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(text="back_menu_product", state="buy")
 async def show_menu_a(call: types.CallbackQuery, state: FSMContext):
-    print("OK")
     await call.answer(cache_time=60)
     await state.finish()
     await call.message.delete()
@@ -51,9 +50,14 @@ async def back_profile(call: types.CallbackQuery, state: FSMContext):
     price = await commands.get_string_price()
     if count == '':
         count = 0
-    await call.message.answer(f"Можно купить: {count}\n\n"
-                              f"Введите количество для покупки, стоимость {price} руб штука",
-                              reply_markup=keybord_products_cancel)
+    await call.message.answer_photo(photo='https://ibb.co/Yjb7qb8',
+                                    caption=f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                            f"📃 Категория: Строки 🇷🇺|Данные паспорта\n"
+                                            f"🇷🇺 Строки с паспортными данными для идентификации в букмекерской конторе Фонбет\n\n"
+                                            f"Доступно к покупке: {count} шт.\n\n"
+                                            f"Введите количество для покупки, стоимость {price} ₽ шт.\n"
+                                            f"➖➖➖➖➖➖➖➖➖➖➖➖",
+                                    reply_markup=keybord_products_cancel)
     await state.set_state("buy_string")
     await state.update_data(count=count)
     await state.update_data(price=price)
@@ -101,7 +105,7 @@ async def buy(call: types.CallbackQuery, state: FSMContext):
         for u in stroki:
             await call.message.answer(u.string)
 
-        await dp.bot.send_message(-1001657326519, f"Пользователь {user.name}, купил {number} строк")
+        await dp.bot.send_message(-1001657326519, f"Пользователь {user.name} (id:/{user.id}), купил {number} строк")
         await state.finish()
     else:
         await state.finish()

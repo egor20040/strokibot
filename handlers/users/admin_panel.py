@@ -37,7 +37,8 @@ async def send_welcome(message: types.Message, regexp):
             f'Текущий баланс пользователя: {user.balance}.0 RUB',
             f'Дней в боте: {start.days}',
             f'Купил строк: {buy_string}',
-            f'Пригласил пользователей:',
+            f'Пригласил пользователей: {user.invited}',
+            f'Доступно бонусных строк: {user.bonus_string}',
         ]
         await message.answer('\n'.join(text), reply_markup=keyboard_user_info(user_id))
     else:
