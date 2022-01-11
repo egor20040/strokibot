@@ -44,7 +44,7 @@ class User(TimeBaseModel):
     balance = Column(Integer)
     purchases = Column(String(100))
     invited = Column(Integer)
-    called = Column(Integer)
+    called = Column(BigInteger)
     bonus_string = Column(Integer)
 
 
@@ -54,7 +54,7 @@ class Product(TimeBaseModel):
     id = Column(Integer, primary_key=True)
     string = Column(String)
     sell = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(BigInteger, ForeignKey('users.id'))
 
 
 class Prices(TimeBaseModel):

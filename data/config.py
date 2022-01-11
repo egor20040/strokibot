@@ -13,6 +13,8 @@ DATABASE = str(os.getenv("DATABASE"))
 QIWI_TOKEN = str(os.getenv("qiwi"))
 WALLET_QIWI = str(os.getenv("wallet"))
 QIWI_PUBKEY = str(os.getenv("qiwi_p_pub"))
+CHANNEL_ID = "@bonus_hunter_info"
+NOTSUB_MESSAGE = "Для доступа к функционалу бота, подпишитесь на канал"
 admins = [
     417804053,
     406435291

@@ -1,7 +1,9 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 
+from data.config import CHANNEL_ID, NOTSUB_MESSAGE
 from documents.locate import DOC_DIR
+from keyboards.inline.channel_subscription import subscription_keyboard
 from keyboards.inline.products import keybord_products, keybord_products_buy, keybord_products_cancel, \
     keybord_products_balance
 from keyboards.default.main_menu import cancel
@@ -9,9 +11,31 @@ from loader import dp
 from utils.db_api import quick_commands as commands
 
 
+def check_sub_channel(chat_member):
+    print(chat_member)
+    if chat_member['status'] != 'left':
+        return True
+    else:
+        return False
+
+
+@dp.callback_query_handler(text="subchanneldone")
+async def sub_channel_done(call: types.CallbackQuery):
+    await call.message.delete()
+    await call.answer(cache_time=60)
+    if check_sub_channel(await dp.bot.get_chat_member(chat_id=CHANNEL_ID, user_id=call.from_user.id)):
+        await call.message.answer("Спасибо за подписку ☺️, доступ к функционалу бота открыт")
+    else:
+        await call.message.answer("Не нашел вашу подписку, убедитесь что подписались на канал",
+                                  reply_markup=subscription_keyboard)
+
+
 @dp.message_handler(text="📖 Наличие товаров")
 async def show_menu(message: types.Message):
-    await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+    if check_sub_channel(await dp.bot.get_chat_member(chat_id=CHANNEL_ID, user_id=message.from_user.id)):
+        await message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+    else:
+        await message.answer(NOTSUB_MESSAGE, reply_markup=subscription_keyboard)
 
 
 @dp.message_handler(text="📖 Наличие товаров", state="buy_string")
