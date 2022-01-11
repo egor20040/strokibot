@@ -4,12 +4,12 @@ keybord_add_money = InlineKeyboardMarkup(row_width=1,
                                          inline_keyboard=[
                                              [
                                                  InlineKeyboardButton(
-                                                     text="Пополнить",
-                                                     callback_data="add_money"
+                                                     text="💶 Пополнить баланс",
+                                                     callback_data="method"
 
                                                  ),
                                                  InlineKeyboardButton(
-                                                     text="Получить купленые строки",
+                                                     text="📩 Получить купленые строки",
                                                      callback_data="get_lines"
 
                                                  ),
@@ -17,7 +17,7 @@ keybord_add_money = InlineKeyboardMarkup(row_width=1,
                                              ],
                                              [
                                                  InlineKeyboardButton(
-                                                     text="Получить бонусные строки",
+                                                     text="🎁 Получить бонусные строки",
                                                      callback_data="get_bonus_lines"
 
                                                  ),
@@ -25,3 +25,17 @@ keybord_add_money = InlineKeyboardMarkup(row_width=1,
 
                                          ]
                                          )
+
+keyboard_method_replenishment = InlineKeyboardMarkup(row_width=1,
+                                                     inline_keyboard=[
+                                                         [
+                                                             InlineKeyboardButton(
+                                                                 text="🥝 QIWI",
+                                                                 callback_data="add_money"
+
+                                                             ),
+
+                                                         ],
+
+                                                     ]
+                                                     )

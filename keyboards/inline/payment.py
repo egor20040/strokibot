@@ -6,7 +6,7 @@ paid_keyboard = InlineKeyboardMarkup(row_width=2,
                                          inline_keyboard=[
                                              [
                                                  InlineKeyboardButton(
-                                                     text="Оплатил",
+                                                     text="✅ Проверить пополнение ✅",
                                                      callback_data=set_paid.new(text_name="paid")
 
                                                  ),
@@ -14,7 +14,7 @@ paid_keyboard = InlineKeyboardMarkup(row_width=2,
                                              ],
                                              [
                                                  InlineKeyboardButton(
-                                                     text="Назад",
+                                                     text="❌ Отменить пополнение ❌",
                                                      callback_data="back_profile"
 
                                                  ),
