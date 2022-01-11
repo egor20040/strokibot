@@ -12,7 +12,6 @@ from utils.db_api import quick_commands as commands
 
 
 def check_sub_channel(chat_member):
-    print(chat_member)
     if chat_member['status'] != 'left':
         return True
     else:
@@ -129,7 +128,7 @@ async def buy(call: types.CallbackQuery, state: FSMContext):
         for u in stroki:
             await call.message.answer(u.string)
 
-        await dp.bot.send_message(-1001657326519, f"Пользователь {user.name} (id:/{user.id}), купил {number} строк")
+        await dp.bot.send_message(-1001657326519, f"Пользователь @{call.message.chat.username} (id:/{user.id}), купил {number} строк")
         await state.finish()
     else:
         await state.finish()

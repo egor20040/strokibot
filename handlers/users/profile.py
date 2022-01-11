@@ -78,7 +78,7 @@ async def back_profile(call: types.CallbackQuery):
         for u in stroki:
             await call.message.answer(u.string)
         await dp.bot.send_message(-1001657326519,
-                                  f"Пользователь {user.name} (id:/{user.id}), получил {user.bonus_string}  бонусных строк")
+                                  f"Пользователь @{call.message.chat.username} (id:/{user.id}), получил {user.bonus_string}  бонусных строк")
     else:
         await call.message.answer(
             "У вас пока нет бонусных строк, для получения пригласите новых пользователй по вашей реферальной ссылке.\n\n"
@@ -173,7 +173,7 @@ async def show_paid(call: CallbackQuery, state: FSMContext):
 
         try:
             await dp.bot.send_message(-1001657326519,
-                                      f"Пользователь {user.name} (id:/{user.id}) пополнил баланс на {summ}")
+                                      f"Пользователь @{call.message.chat.username} (id:/{user.id}) пополнил баланс на {summ}")
         except Exception as err:
             logging.exception(err)
         await state.finish()

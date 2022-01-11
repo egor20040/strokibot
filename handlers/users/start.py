@@ -23,7 +23,7 @@ async def bot_start_deeplink(message: types.Message):
         except:
             deep_link_args = 0
         await dp.bot.send_message(-1001657326519,
-                                  f"Пользователь {user.name} (id:/{user.id}), пригласил {message.from_user.full_name} (id:/{message.from_user.id}),")
+                                  f"Пользователь {user.name} (id:/{user.id}), пригласил @{message.from_user.username} (id:/{message.from_user.id}),")
         await commands.add_user(id=message.from_user.id, name=message.from_user.full_name, chat_id=message.chat.id,
                                 balance=0, invited=0, bonus_string=0, called=int(deep_link_args))
         await message.answer("Выберете категорию которая вам нужна ниже:", reply_markup=main_menu)
@@ -36,7 +36,7 @@ async def bot_start(message: types.Message):
         await message.answer("Выберете категорию которая вам нужна ниже:", reply_markup=main_menu)
     else:
         await dp.bot.send_message(-1001657326519,
-                                  f"Новый пользователь: {message.from_user.full_name} (id:/{message.from_user.id})")
+                                  f"Новый пользователь: @{message.from_user.username} (id:/{message.from_user.id})")
         await commands.add_user(id=message.from_user.id, name=message.from_user.full_name, chat_id=message.chat.id,
                                 balance=0, invited=0, bonus_string=0)
         await message.answer("Выберете категорию которая вам нужна ниже:", reply_markup=main_menu)
