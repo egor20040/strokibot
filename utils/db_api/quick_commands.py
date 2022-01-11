@@ -76,7 +76,8 @@ async def delete_product(count: int):
 
 async def create_price():
     try:
-        price = Prices(name_product='string', price=20)
+        price = Prices(name_product='string', price=10,
+                       description='🇷🇺 Строки с паспортными данными для идентификации в букмекерской конторе Фонбет')
 
         await price.create()
 
@@ -84,9 +85,9 @@ async def create_price():
         pass
 
 
-async def get_string_price():
-    string = await Prices.query.where(Prices.name_product == 'string').gino.first()
-    return string.price
+async def get_product_info(product):
+    string = await Prices.query.where(Prices.name_product == product).gino.first()
+    return string
 
 
 async def update_price_string(price):

@@ -3,7 +3,7 @@ from typing import List
 from aiogram import Dispatcher
 from gino import Gino
 import sqlalchemy as sa
-from sqlalchemy import Integer, Column, String, DateTime, BigInteger, sql, Boolean, ForeignKey
+from sqlalchemy import Integer, Column, String, DateTime, BigInteger, sql, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from data import config
@@ -61,8 +61,9 @@ class Prices(TimeBaseModel):
     __tablename__ = 'price'
     query: sql.Select
     id = Column(Integer, primary_key=True)
-    name_product = Column(String(100))
-    price = Column(Integer)
+    name_product = Column(String(100),  nullable=False)
+    price = Column(Integer,  nullable=False)
+    description = Column(Text)
 
 
 async def on_startup(dispatcher: Dispatcher):

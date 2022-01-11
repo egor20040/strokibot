@@ -70,20 +70,20 @@ async def back_profile(call: types.CallbackQuery, state: FSMContext):
     await call.answer(cache_time=60)
     await call.message.delete()
     count = await commands.get_count_product()
-    price = await commands.get_string_price()
+    string = await commands.get_product_info('string')
     if count == '':
         count = 0
     await call.message.answer_photo(photo='https://ibb.co/Yjb7qb8',
                                     caption=f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
                                             f"📃 Категория: Строки 🇷🇺|Данные паспорта\n"
-                                            f"🇷🇺 Строки с паспортными данными для идентификации в букмекерской конторе Фонбет\n\n"
+                                            f"{string.description}\n\n"
                                             f"Доступно к покупке: {count} шт.\n\n"
-                                            f"Введите количество для покупки, стоимость {price} ₽ шт.\n"
+                                            f"Введите количество для покупки, стоимость {string.price} ₽ шт.\n"
                                             f"➖➖➖➖➖➖➖➖➖➖➖➖",
                                     reply_markup=keybord_products_cancel)
     await state.set_state("buy_string")
     await state.update_data(count=count)
-    await state.update_data(price=price)
+    await state.update_data(price=string.price)
 
 
 @dp.message_handler(state="buy_string")

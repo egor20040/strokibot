@@ -29,10 +29,12 @@ async def show_menu(message: types.Message):
         buy_string = await commands.get_purchases_count(message.chat.id)
         bot_user = await dp.bot.get_me()
         await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                             f"💰 Ваш баланс: {user.balance}.0 RUB\n\n"
+                             f"💰 Ваш баланс: {user.balance}.0 RUB\n"
+                             "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                              f"💸 Вы купили строк: {buy_string}\n"
                              f"🎁 Бонусные строки: {user.bonus_string}\n"
-                             f"🗣 Пригласили пользователей: {user.invited}\n\n"
+                             f"🗣 Пригласили пользователей: {user.invited}\n"
+                             "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                              f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
                              reply_markup=keybord_add_money, disable_web_page_preview=True)
     else:
@@ -46,10 +48,12 @@ async def show_menu(message: types.Message, state: FSMContext):
     bot_user = await dp.bot.get_me()
     buy_string = await commands.get_purchases_count(message.chat.id)
     await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                         f"💰 Ваш баланс: {user.balance}.0 RUB\n\n"
+                         f"💰 Ваш баланс: {user.balance}.0 RUB\n"
+                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                          f"💸 Вы купили строк: {buy_string}\n"
                          f"🎁 Бонусные строки: {user.bonus_string}\n"
-                         f"🗣 Пригласили пользователей: {user.invited}\n\n"
+                         f"🗣 Пригласили пользователей: {user.invited}\n"
+                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                          f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
                          reply_markup=keybord_add_money, disable_web_page_preview=True)
 
@@ -61,10 +65,12 @@ async def show_menu(message: types.Message, state: FSMContext):
     user = await commands.select_user(message.from_user.id)
     buy_string = await commands.get_purchases_count(message.chat.id)
     await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                         f"💰 Ваш баланс: {user.balance}.0 RUB\n\n"
+                         f"💰 Ваш баланс: {user.balance}.0 RUB\n"
+                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                          f"💸 Вы купили строк: {buy_string}\n"
                          f"🎁 Бонусные строки: {user.bonus_string}\n"
-                         f"🗣 Пригласили пользователей: {user.invited}\n\n"
+                         f"🗣 Пригласили пользователей: {user.invited}\n"
+                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                          f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
                          reply_markup=keybord_add_money, disable_web_page_preview=True)
 
@@ -128,10 +134,12 @@ async def back_profile(call: types.CallbackQuery, state: FSMContext):
     buy_string = await commands.get_purchases_count(call.message.chat.id)
     user = await commands.select_user(call.message.chat.id)
     await call.message.answer(f"🔑 ID: {call.message.from_user.id}\n"
-                              f"💰 Ваш баланс: {user.balance}.0 RUB\n\n"
+                              f"💰 Ваш баланс: {user.balance}.0 RUB\n"
+                              "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                               f"💸 Вы купили строк: {buy_string}\n"
                               f"🎁 Бонусные строки: {user.bonus_string}\n"
-                              f"🗣 Пригласили пользователей: {user.invited}\n\n"
+                              f"🗣 Пригласили пользователей: {user.invited}\n"
+                              "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
                               f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={call.message.chat.id}",
                               reply_markup=keybord_add_money, disable_web_page_preview=True)
 
