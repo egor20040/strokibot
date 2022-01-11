@@ -16,7 +16,7 @@ from utils.db_api import quick_commands as commands
 
 
 @dp.message_handler(chat_id=417804053, commands=["create_product"])
-async def add_item(message: types.Message):
+async def add_item():
     await commands.create_price()
 
 

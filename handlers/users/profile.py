@@ -6,73 +6,20 @@ from aiogram.utils.markdown import hlink, hcode, hbold
 import logging
 
 from data import config
-from data.config import admins, CHANNEL_ID, NOTSUB_MESSAGE
+
 from documents.locate import DOC_DIR
-from handlers.users.products import check_sub_channel
+
 from keyboards.default.main_menu import main_menu
 from aiogram.dispatcher import FSMContext
 import datetime as dt
 
 from keyboards.inline.callback_datas import set_paid
-from keyboards.inline.channel_subscription import subscription_keyboard
+
 from keyboards.inline.payment import paid_keyboard
 from keyboards.inline.profile import keybord_add_money, keyboard_method_replenishment
 from utils.db_api import quick_commands as commands
 from loader import dp
 from utils.misc.qiwi import Payment, NoPaymentFound, NotEnoughMoney
-
-
-@dp.message_handler(text="👤 Профиль")
-async def show_menu(message: types.Message):
-    if check_sub_channel(await dp.bot.get_chat_member(chat_id=CHANNEL_ID, user_id=message.from_user.id)):
-        user = await commands.select_user(message.from_user.id)
-        buy_string = await commands.get_purchases_count(message.chat.id)
-        bot_user = await dp.bot.get_me()
-        await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                             f"💰 Ваш баланс: {user.balance}.0 RUB\n"
-                             "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                             f"💸 Вы купили строк: {buy_string}\n"
-                             f"🎁 Бонусные строки: {user.bonus_string}\n"
-                             f"🗣 Пригласили пользователей: {user.invited}\n"
-                             "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                             f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
-                             reply_markup=keybord_add_money, disable_web_page_preview=True)
-    else:
-        await message.answer(NOTSUB_MESSAGE, reply_markup=subscription_keyboard)
-
-
-@dp.message_handler(text="👤 Профиль", state="buy_string")
-async def show_menu(message: types.Message, state: FSMContext):
-    await state.finish()
-    user = await commands.select_user(message.from_user.id)
-    bot_user = await dp.bot.get_me()
-    buy_string = await commands.get_purchases_count(message.chat.id)
-    await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                         f"💰 Ваш баланс: {user.balance}.0 RUB\n"
-                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                         f"💸 Вы купили строк: {buy_string}\n"
-                         f"🎁 Бонусные строки: {user.bonus_string}\n"
-                         f"🗣 Пригласили пользователей: {user.invited}\n"
-                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                         f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
-                         reply_markup=keybord_add_money, disable_web_page_preview=True)
-
-
-@dp.message_handler(text="👤 Профиль", state="add_money")
-async def show_menu(message: types.Message, state: FSMContext):
-    await state.finish()
-    bot_user = await dp.bot.get_me()
-    user = await commands.select_user(message.from_user.id)
-    buy_string = await commands.get_purchases_count(message.chat.id)
-    await message.answer(f"🔑 ID: {message.from_user.id}\n"
-                         f"💰 Ваш баланс: {user.balance}.0 RUB\n"
-                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                         f"💸 Вы купили строк: {buy_string}\n"
-                         f"🎁 Бонусные строки: {user.bonus_string}\n"
-                         f"🗣 Пригласили пользователей: {user.invited}\n"
-                         "➖➖➖➖➖➖➖➖➖➖➖➖➖\n"
-                         f"🤝 Ваша реферальная ссылка: http://t.me/{bot_user.username}?start={message.chat.id}",
-                         reply_markup=keybord_add_money, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text="get_bonus_lines")
@@ -111,7 +58,7 @@ async def back_profile(call: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text="method")
-async def method_replenishment(call: types.CallbackQuery, state: FSMContext):
+async def method_replenishment(call: types.CallbackQuery):
     await call.answer(cache_time=60)
     await call.message.delete()
     await call.message.answer(hbold("Выберите способ пополнения:"), reply_markup=keyboard_method_replenishment)
@@ -121,7 +68,7 @@ async def method_replenishment(call: types.CallbackQuery, state: FSMContext):
 async def back_profile(call: types.CallbackQuery, state: FSMContext):
     await call.answer(cache_time=60)
     await call.message.delete()
-    await call.message.answer("Введите сумму на которую хотите пополнить кошелк")
+    await call.message.answer("Напишите сумму пополнения:")
     await state.set_state("add_money")
 
 
@@ -144,48 +91,45 @@ async def back_profile(call: types.CallbackQuery, state: FSMContext):
                               reply_markup=keybord_add_money, disable_web_page_preview=True)
 
 
-@dp.message_handler(state="add_money")
+@dp.message_handler(lambda message: not message.text.isdigit(), state="add_money")
+async def process_sum_invalid(message: types.Message):
+    return await message.reply("Сумма должна быть числом.")
+
+
+@dp.message_handler(lambda message: message.text.isdigit(), state="add_money")
 async def update_currency(message: types.Message, state: FSMContext):
     summ = message.text
-    if summ.isdigit():
-        payment = Payment(amount=summ)
-        payment.create()
-        await message.answer(
-            "\n".join(
-                [
-                    f"➖➖➖➖ # {payment.id}➖➖➖➖",
-                    f"☎️ Кошелек для оплаты: {hcode(config.WALLET_QIWI)}",
-                    f"💰 Сумма: {summ}",
-                    f"💭 Комментарий: {hcode(payment.id)}",
-                    f"{hbold('ВАЖНО')} Комментарий и сумма должны быть 1в1",
-                    f"Ссылка: {hlink('тык', url=payment.invoice)}",
-                    "➖➖➖➖➖➖➖➖➖➖➖➖",
-                ]
-            ),
-            reply_markup=paid_keyboard
-        )
-        await state.set_state("paid")
-        await state.update_data(payment=payment)
-        await state.update_data(summ=summ)
-    else:
-        await message.answer("Введите корректную сумму")
-        await state.set_state("add_money")
+    payment = Payment(amount=summ)
+    payment.create()
+    await message.answer(
+        "\n".join(
+            [
+                f"➖➖➖➖ # {hcode(payment.id)}➖➖➖➖",
+                f"☎️ Кошелек для оплаты: {hcode(config.WALLET_QIWI)}",
+                f"💰 Сумма: {summ} ₽",
+                f"💭 Комментарий: {hcode(payment.id)}",
+                f"{hbold('ВАЖНО')} Комментарий и сумма должны быть 1в1",
+                "➖➖➖➖➖➖➖➖➖➖➖➖",
+            ]
+        ),
+        reply_markup=paid_keyboard(payment.invoice)
+    )
+    await state.set_state("paid")
+    await state.update_data(payment=payment)
+    await state.update_data(summ=summ)
 
 
 @dp.callback_query_handler(set_paid.filter(text_name="paid"), state="paid")
 async def show_paid(call: CallbackQuery, state: FSMContext):
-    await call.answer(cache_time=60)
     data = await state.get_data()
     summ = data.get("summ")
     payment: Payment = data.get("payment")
     try:
         payment.check_payment()
     except NoPaymentFound:
-        await call.message.answer("Оплата не найдена", reply_markup=paid_keyboard)
-
+        await dp.bot.answer_callback_query(callback_query_id=call.id, text="Оплата не найдена", show_alert=False)
     except NotEnoughMoney:
-        await call.message.answer("Не хватает денег", reply_markup=paid_keyboard)
-
+        await dp.bot.answer_callback_query(callback_query_id=call.id, text="Не хватает денег", show_alert=False)
     else:
         await commands.update_balance(id=call.message.chat.id, summ=int(summ))
         user = await commands.select_user(call.message.chat.id)
