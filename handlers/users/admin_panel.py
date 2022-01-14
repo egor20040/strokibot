@@ -235,7 +235,10 @@ async def add_milling(message: types.Message, state: FSMContext):
     i = 0
     for user in users:
         i += 1
-        await dp.bot.send_message(chat_id=user.chat_id, text=message.text)
+        try:
+            await dp.bot.send_message(chat_id=user.chat_id, text=message.text)
+        except  Exception:
+            print("Пользователь отписался")
     await message.answer(f"Сообщение отправлено {i} пользователям")
 
 
