@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from keyboards.inline.products import keybord_products, keybord_products_buy, keybord_products_cancel, \
-    keybord_products_balance
+    keybord_products_balance, keybord_buy_parser
 
 from loader import dp
 from utils.db_api import quick_commands as commands
@@ -22,6 +22,30 @@ async def cancel(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.delete()
     await call.message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
+@dp.callback_query_handler(text="cancel", state="buy_parser")
+async def cancel_parser(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await state.finish()
+    await call.message.delete()
+    await call.message.answer("Выберете товар, который хотите купить:", reply_markup=keybord_products)
+
+
+@dp.callback_query_handler(text="parser")
+async def back_profile(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    await call.message.delete()
+    parser = await commands.get_product_info('parser')
+    await call.message.answer_photo(photo='https://leadozvon.ru/wp-content/uploads/brizy/18303/assets/images/iW=580&iH=453&oX=11&oY=0&cW=557&cH=453/parser-telephon-s-saitov.png',
+                                    caption=f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
+                                            f"📃 Категория: Парсер строк 🤖\n"
+                                            f"{parser.description}\n\n"
+                                            f"Стоимость {parser.price} ₽.\n"
+                                            f"➖➖➖➖➖➖➖➖➖➖➖➖",
+                                    reply_markup=keybord_buy_parser)
+    await state.set_state("buy_parser")
+    await state.update_data(price=parser.price)
 
 
 @dp.callback_query_handler(text="string")
@@ -72,6 +96,27 @@ async def update_currency(message: types.Message, state: FSMContext):
         await state.set_state("buy")
         await state.update_data(number=int(number))
         await state.update_data(summ=int(summ))
+
+
+@dp.callback_query_handler(text="buy", state="buy_parser")
+async def buy(call: types.CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    data = await state.get_data()
+    price = data.get("price")
+    user = await commands.select_user(call.message.chat.id)
+    balance = user.balance - price
+    if balance >= 0:
+        await commands.update_balance_buy(id=call.message.chat.id, summ=balance)
+        await call.message.answer("Ссылка на парсер: https://disk.yandex.ru/d/CzUVVq0s_W7AGA\n"
+                                  "Пароль на архив: abuzstroki_bot",disable_web_page_preview=True)
+        await dp.bot.send_message(-1001657326519,
+                                  f"Пользователь @{call.message.chat.username} (id:/{user.id}), купил парсер")
+        await state.finish()
+    else:
+        await state.finish()
+        balance *= -1
+        await call.message.answer(f"Вам не хватает {balance}, пополните ваш баланс",
+                                  reply_markup=keybord_products_balance)
 
 
 @dp.callback_query_handler(text="buy", state="buy")

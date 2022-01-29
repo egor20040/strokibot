@@ -9,6 +9,13 @@ keybord_products = InlineKeyboardMarkup(row_width=1,
 
                                                 ),
                                             ],
+                                            [
+                                                InlineKeyboardButton(
+                                                    text="Парсер строк 🤖",
+                                                    callback_data="parser"
+
+                                                ),
+                                            ],
 
                                         ]
                                         )
@@ -45,13 +52,32 @@ keybord_products_cancel = InlineKeyboardMarkup(row_width=1,
                                                )
 
 keybord_products_balance = InlineKeyboardMarkup(row_width=1,
-                                               inline_keyboard=[
-                                                   [
-                                                       InlineKeyboardButton(
-                                                           text="Пополнить",
-                                                           callback_data="add_money"
+                                                inline_keyboard=[
+                                                    [
+                                                        InlineKeyboardButton(
+                                                            text="Пополнить",
+                                                            callback_data="add_money"
 
-                                                       ),
-                                                   ]
-                                               ]
-                                               )
+                                                        ),
+                                                    ]
+                                                ]
+                                                )
+
+keybord_buy_parser = InlineKeyboardMarkup(row_width=1,
+                                          inline_keyboard=[
+                                              [
+                                                  InlineKeyboardButton(
+                                                      text="Купить",
+                                                      callback_data="buy"
+
+                                                  ),
+                                              ],
+                                              [
+                                                  InlineKeyboardButton(
+                                                      text="Отмена",
+                                                      callback_data="cancel"
+
+                                                  ),
+                                              ]
+                                          ]
+                                          )
